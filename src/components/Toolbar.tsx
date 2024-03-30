@@ -4,6 +4,7 @@ import SvgBlockquote from '../icons/Blockquote';
 import SvgCode from '../icons/Code';
 import SvgDelete from '../icons/Delete';
 import SvgEmphasis from '../icons/Emphasis';
+import FontColor from '../icons/FontColor';
 import SvgHeading from '../icons/Heading';
 import SvgHelp from '../icons/Help';
 import SvgImage from '../icons/Image';
@@ -29,6 +30,7 @@ import { redoHandler, toggleHandler, undoHandler } from '../utils/handler';
 import { toHTML, toMarkdown } from '../utils/markdown';
 import Fade from './Fade';
 import FileInput from './FileInput';
+import App from '../App';
 
 interface ItemProps {
   children: React.ReactNode;
@@ -311,6 +313,26 @@ export const getDefaultToolbarItemMap = (
   const t = getFormat(locale, 'toolbarItem');
 
   return {
+    fontColor: {
+      children: <FontColor className={classNames(`${prefix}-icon`)} />,
+      tooltip: t('blockquote'),
+      onClick: (exec) =>
+        exec(({ sourceCode, selection, dispatch }) => {
+          console.log(sourceCode, selection, 'sourceCode');
+          dispatch({
+            type: 'toggle',
+            payload: { type: 'fontColor' },
+            selection,
+          });
+          // 获取选中的文本
+          // dispatch({
+          //   type: 'set',
+          //   payload: { sourceCode: toHTML(sourceCode), selection },
+          //   selection,
+          // });
+        }),
+    },
+
     blockquote: {
       children: <SvgBlockquote className={classNames(`${prefix}-icon`)} />,
       tooltip: t('blockquote'),
@@ -497,8 +519,11 @@ export const getDefaultToolbarItemMap = (
 
     table: {
       children: <SvgTable className={classNames(`${prefix}-icon`)} />,
-      tooltip: t('table'),
-      onClick: (exec) => exec(toggleHandler({ type: 'table' })),
+      tooltip: <div>test</div>,
+      popoverRender: (exec, close) => <App />,
+      onClick: (exec) => {
+        return exec(toggleHandler({ type: 'table' }));
+      },
     },
 
     taskList: {
@@ -565,13 +590,14 @@ export const getDefaultToolbarItems = (): ToolbarItems => [
   ['toMarkdown', 'toHTML'],
   ['undo', 'redo'],
   // ['help'],
+  ['fontColor'],
 ];
 
 interface ToolbarProps {
   className?: string;
   style?: React.CSSProperties;
   itemMap: ToolbarItemMap;
-  items: ToolbarItems;
+  items: ToolbarItems; // 通过数组进行分组
   exec: Executor;
 }
 
@@ -588,12 +614,15 @@ const Toolbar = ({ className, style, itemMap, items, exec }: ToolbarProps) => {
     >
       {items.map((group, index) => (
         <React.Fragment key={index}>
+          {/* 根据分组添加分隔符 */}
           {!!index && <div className={classNames(`${prefix}-divider`)} />}
           {group.map((item, index) => {
+            // 在itemMap中找到item的映射
             const toolbarItem = typeof item === 'string' ? itemMap[item] : item;
             if (!toolbarItem) {
               return undefined;
             }
+
             const { children, disabled, tooltip, popoverRender, onClick } =
               typeof toolbarItem === 'function'
                 ? toolbarItem(ctx)

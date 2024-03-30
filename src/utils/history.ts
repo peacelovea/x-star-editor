@@ -68,7 +68,7 @@ const stateReducer = ({ sourceCode }: State, action: StateAction): State => {
       const lineEndOffset = endOffset + `${after}\n`.indexOf('\n');
       const lineBefore = sourceCode.slice(0, lineStartOffset);
       const lineAfter = sourceCode.slice(lineEndOffset);
-
+      // debugger
       switch (action.payload.type) {
         case 'blockquote':
         case 'orderedList':
@@ -137,6 +137,7 @@ const stateReducer = ({ sourceCode }: State, action: StateAction): State => {
               : type === 'delete'
               ? ['~~']
               : ['$'];
+          // 获取选中的文本
           const text = sourceCode.slice(startOffset, endOffset);
           for (const delimiter of delimiters) {
             if (before.endsWith(delimiter) && after.startsWith(delimiter)) {
@@ -161,6 +162,18 @@ const stateReducer = ({ sourceCode }: State, action: StateAction): State => {
               anchorOffset + delimiter.length,
               focusOffset + delimiter.length,
             ),
+          };
+        }
+        case 'fontColor': {
+          // 获取选中的文本
+          const text = sourceCode.slice(startOffset, endOffset);
+          const textDom = document.createElement('span');
+          textDom.style.color = 'red';
+          textDom.textContent = text;
+          const newCode = textDom.outerHTML;
+          return {
+            sourceCode: `${before}${newCode}${after}`,
+            selection: createSelection(anchorOffset, focusOffset),
           };
         }
 
@@ -303,6 +316,7 @@ const historyReducer = (
   { states, index, selection }: History,
   action: HistoryAction | (StateAction & { batch?: boolean }),
 ): History => {
+  // debugger
   switch (action.type) {
     case 'undo': {
       if (!index) {
@@ -393,6 +407,7 @@ export const useHistory = (initialSourceCode: string, readOnly?: boolean) => {
   const [history, dispatch] = useReducer<typeof historyReducer, string>(
     historyReducer,
     initialSourceCode,
+    // 计算初始值的函数
     (text) => {
       const action: InsertAction = {
         type: 'insert',
@@ -410,6 +425,7 @@ export const useHistory = (initialSourceCode: string, readOnly?: boolean) => {
       };
     },
   );
+  console.log(history, 'history');
 
   const readOnlyLatest = useRef(readOnly);
   readOnlyLatest.current = readOnly;
@@ -420,6 +436,9 @@ export const useHistory = (initialSourceCode: string, readOnly?: boolean) => {
     selection: history.selection,
     dispatch: useRef<typeof dispatch>((action) => {
       if (!readOnlyLatest.current) {
+        // debugger
+        console.log(action, 'action');
+
         dispatch(action);
       }
     }).current,

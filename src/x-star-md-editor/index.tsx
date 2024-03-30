@@ -197,6 +197,7 @@ const XStarMdEditor = React.forwardRef<XStarMdEditorHandle, XStarMdEditorProps>(
         : selection;
     };
 
+    // 接受一个handler 并返回处理后的结果
     const exec = useRef<Executor>((handler) =>
       handler({
         history: historyLatest.current,
@@ -260,6 +261,7 @@ const XStarMdEditor = React.forwardRef<XStarMdEditorHandle, XStarMdEditorProps>(
       }
     };
 
+    // 拖拽事件处理器
     const dragEventHandler = (e: React.DragEvent) => {
       const selection = getSelection();
       const { startOffset, endOffset } = getRange(selection);
@@ -292,6 +294,7 @@ const XStarMdEditor = React.forwardRef<XStarMdEditorHandle, XStarMdEditorProps>(
     onInsertFileLatest.current = onInsertFile;
 
     const options = useMemo(
+      // 当切换语言和更新插件时，重新获取toolbar options
       () =>
         composeHandlers(plugins)({
           toolbarItemMap: getDefaultToolbarItemMap(locale, (file, options) =>
@@ -482,8 +485,11 @@ const XStarMdEditor = React.forwardRef<XStarMdEditorHandle, XStarMdEditorProps>(
       return () => editor.removeEventListener('beforeinput', listener);
     }, []);
 
+    console.log(options,'options');
+    
     return (
       <LocaleProvider locale={locale}>
+        {/* 工具栏 */}
         <Toolbar
           className={classNames(toolbarClassName)}
           style={toolbarStyle}
